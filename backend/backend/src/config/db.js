@@ -1,6 +1,9 @@
 const { Pool } = require("pg");
 
-const useSsl = String(process.env.DB_SSL || "false").toLowerCase() === "true";
+const hasDbSslEnv = typeof process.env.DB_SSL !== "undefined";
+const useSsl = hasDbSslEnv
+  ? String(process.env.DB_SSL || "false").toLowerCase() === "true"
+  : String(process.env.NODE_ENV || "").toLowerCase() === "production";
 const databaseUrl = process.env.DATABASE_URL || "";
 
 if (process.env.NODE_ENV === "production" && !databaseUrl && !process.env.DB_HOST) {
