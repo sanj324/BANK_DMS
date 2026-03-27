@@ -2,6 +2,52 @@ const pool = require("./db");
 
 async function bootstrapDatabase() {
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(100) UNIQUE NOT NULL,
+      email VARCHAR(150),
+      password TEXT NOT NULL,
+      role VARCHAR(50) DEFAULT 'user',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS folders (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      parent_id INTEGER REFERENCES folders(id) ON DELETE CASCADE,
+      created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS documents (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      file_path TEXT NOT NULL,
+      status VARCHAR(30) DEFAULT 'PENDING',
+      uploaded_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      folder_id INTEGER REFERENCES folders(id) ON DELETE SET NULL,
+      file_size BIGINT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      action VARCHAR(100) NOT NULL,
+      entity VARCHAR(50) NOT NULL,
+      entity_id INTEGER,
+      details TEXT,
+      timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  await pool.query(`
     ALTER TABLE users
       ADD COLUMN IF NOT EXISTS user_id INTEGER,
       ADD COLUMN IF NOT EXISTS email VARCHAR(150),

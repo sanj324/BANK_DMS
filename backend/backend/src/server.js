@@ -76,6 +76,7 @@ bootstrapDatabase()
     });
   })
   .catch((err) => {
-    console.error("Bootstrap failed:", err.message);
+    console.error("Bootstrap failed:", err && (err.message || err));
+    if (err && err.stack) console.error(err.stack);
     process.exit(1);
   });
