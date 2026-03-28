@@ -76,9 +76,11 @@ router.post("/signup", validateSignup, async (req, res) => {
     const username = sanitizeUsername(req.body?.username);
     const email = String(req.body?.email || "").trim().toLowerCase();
     const password = String(req.body?.password || "");
+    const requestedRole = String(req.body?.role || "user").trim().toLowerCase();
+    const role = requestedRole === "admin" ? "admin" : "user";
 
-    if (!username || !email || !password) {
-      return res.status(400).json({ message: "username, email and password are required" });
+    if (!username || !email || !password || !role) {
+      return res.status(400).json({ message: "username, email, password and role are required" });
     }
 
     if (!/^[a-zA-Z0-9._-]{3,40}$/.test(username)) {
@@ -107,10 +109,10 @@ router.post("/signup", validateSignup, async (req, res) => {
     const created = await client.query(
       `
       INSERT INTO users (username, email, password, role, user_id)
-      VALUES ($1, $2, $3, 'user', COALESCE((SELECT MAX(user_id) + 1 FROM users), 1))
+      VALUES ($1, $2, $3, $4, COALESCE((SELECT MAX(user_id) + 1 FROM users), 1))
       RETURNING id, user_id, username, email, role, created_at
       `,
-      [username, email, hash]
+      [username, email, hash, role]
     );
 
     const folder = await provisionUserFolder(client, created.rows[0], created.rows[0].id);

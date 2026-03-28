@@ -71,11 +71,11 @@ export async function loginUser(username: string, password: string) {
   return data;
 }
 
-export async function signupUser(username: string, email: string, password: string) {
+export async function signupUser(username: string, email: string, password: string, role: string) {
   const res = await fetch(`${API_URL}/api/auth/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, email, password })
+    body: JSON.stringify({ username, email, password, role })
   });
 
   const data = await res.json();

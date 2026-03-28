@@ -6,6 +6,7 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"user" | "admin">("user");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -16,7 +17,7 @@ export default function Login() {
 
     try {
       if (mode === "signup") {
-        await signupUser(username, email, password);
+        await signupUser(username, email, password, role);
         setMode("login");
         setError("Signup successful. Please login.");
         return;
@@ -66,6 +67,20 @@ export default function Login() {
           </div>
         )}
 
+        {mode === "signup" && (
+          <div style={styles.field}>
+            <label>User Type</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as "user" | "admin")}
+              required
+            >
+              <option value="user">Other User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        )}
+
         <div style={styles.field}>
           <label>Password</label>
           <input
@@ -85,6 +100,7 @@ export default function Login() {
           style={{ marginTop: 10 }}
           onClick={() => {
             setError("");
+            setRole("user");
             setMode(mode === "login" ? "signup" : "login");
           }}
         >

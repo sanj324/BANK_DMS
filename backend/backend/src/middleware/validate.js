@@ -14,12 +14,15 @@ function validateSignup(req, res, next) {
   const username = String(req.body?.username || "").trim();
   const email = String(req.body?.email || "").trim().toLowerCase();
   const password = String(req.body?.password || "");
-  if (!username || !email || !password) return fail(res, "username, email and password are required");
+  const role = String(req.body?.role || "user").trim().toLowerCase();
+  const allowed = new Set(["user", "admin"]);
+  if (!username || !email || !password) return fail(res, "username, email, password and role are required");
   if (!/^[a-zA-Z0-9._-]{3,40}$/.test(username)) {
     return fail(res, "username must be 3-40 chars and only contain letters, digits, dot, underscore, hyphen");
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail(res, "invalid email format");
   if (password.length < 8) return fail(res, "password must be at least 8 characters");
+  if (!allowed.has(role)) return fail(res, "role must be admin or user");
   return next();
 }
 
