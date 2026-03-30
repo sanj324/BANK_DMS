@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { getTenantBrandingFromStorage } from "../services/api";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function MainLayout() {
   const role = localStorage.getItem("role");
   const [branding, setBranding] = useState(getTenantBrandingFromStorage());
@@ -36,7 +38,7 @@ export default function MainLayout() {
         <div style={styles.brandWrap}>
           {branding?.logo_url ? (
             <img
-              src={`http://localhost:5000/${branding.logo_url}`}
+              src={`${API_URL}/${branding.logo_url}`}
               alt="Client Logo"
               style={styles.logo}
             />

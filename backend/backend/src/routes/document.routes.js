@@ -89,6 +89,19 @@ function bytesToMbRounded(bytes) {
   return Math.max(1, Math.ceil(Number(bytes || 0) / (1024 * 1024)));
 }
 
+async function getTableColumns(tableName) {
+  const result = await pool.query(
+    `
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = $1
+    `,
+    [tableName]
+  );
+
+  return new Set(result.rows.map((row) => row.column_name));
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     try {
@@ -363,29 +376,39 @@ router.post("/", auth, (req, res) => {
 router.get("/", auth, async (req, res) => {
   try {
     const folderId = req.query?.folderId ? Number(req.query.folderId) : null;
+    const [documentColumns, folderColumns, userColumns] = await Promise.all([
+      getTableColumns("documents"),
+      getTableColumns("folders"),
+      getTableColumns("users")
+    ]);
+
+    const hasDocumentVersion = documentColumns.has("version_no");
+    const hasDocumentFileSize = documentColumns.has("file_size");
+    const hasDocumentRetention = documentColumns.has("retention_until");
+    const hasUserClientId = userColumns.has("client_id");
 
     let query = `
       SELECT 
         d.id,
         d.name,
-        d.version_no,
         d.status,
         d.uploaded_by,
         d.folder_id,
         f.name AS folder_name,
-        d.file_size,
         d.created_at,
-        d.retention_until,
         u.username AS modified_by
+        ${hasDocumentVersion ? ", d.version_no" : ", 1 AS version_no"}
+        ${hasDocumentFileSize ? ", d.file_size" : ", NULL::bigint AS file_size"}
+        ${hasDocumentRetention ? ", d.retention_until" : ", NULL::timestamp AS retention_until"}
       FROM documents d
-      JOIN users u ON d.uploaded_by = u.id
+      LEFT JOIN users u ON d.uploaded_by = u.id
       LEFT JOIN folders f ON d.folder_id = f.id
     `;
 
     const params = [];
     const conditions = [];
 
-    if (req.user.client_id) {
+    if (req.user.client_id && hasUserClientId) {
       conditions.push(`u.client_id = $${params.length + 1}`);
       params.push(req.user.client_id);
     } else if (!ADMIN_ROLES.has(req.user.role)) {

@@ -22,6 +22,8 @@ import {
   uploadClientLogo
 } from "../services/api";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function AdminPortal() {
   const [summary, setSummary] = useState<any>(null);
   const [alerts, setAlerts] = useState<any[]>([]);
@@ -481,7 +483,7 @@ export default function AdminPortal() {
                       <div style={{ width: 26, height: 26, borderRadius: 6, background: c.secondary_color }} />
                     </div>
                     {c.logo_url ? (
-                      <img src={`http://localhost:5000/${c.logo_url}`} alt="logo" style={{ width: 36, height: 36, marginTop: 6, objectFit: "contain" }} />
+                      <img src={`${API_URL}/${c.logo_url}`} alt="logo" style={{ width: 36, height: 36, marginTop: 6, objectFit: "contain" }} />
                     ) : (
                       <div style={{ fontSize: 12, color: "#789" }}>No logo</div>
                     )}

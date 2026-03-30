@@ -138,7 +138,7 @@ export async function uploadDocument(
     formData.append("folderId", folderId.toString());
   }
 
-  const res = await fetch("http://localhost:5000/api/documents", {
+  const res = await fetch(`${API_URL}/api/documents`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
